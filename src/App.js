@@ -1,11 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {
-    BrowserRouter,
-    Routes,
-    Route,
-    useNavigate,
-    useLocation
-} from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {Route, Routes, useLocation} from "react-router-dom";
 
 // Load Roboto font (for demonstration):
 const robotoFontLink = document.createElement("link");
@@ -17,6 +11,7 @@ document.head.appendChild(robotoFontLink);
 function getDaysInMonth(year, month) {
     return new Date(year, month, 0).getDate();
 }
+
 /** Utility: weekday of 1st => 0=Sun..6=Sat */
 function getFirstWeekday(year, month) {
     return new Date(year, month - 1, 1).getDay();
@@ -24,8 +19,8 @@ function getFirstWeekday(year, month) {
 
 // Month names
 const monthNames = [
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December"
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
 ];
 
 /**
@@ -35,13 +30,14 @@ const monthNames = [
  */
 export default function App() {
     return (
-        <BrowserRouter>
-            <GlobalStyles />
+        <>
+            <GlobalStyles/>
             <Routes>
-                <Route path="/" element={<AllocatorPage />} />
-                <Route path="/share" element={<SharePage />} />
+                <Route path="/" element={<AllocatorPage/>}/>
+                <Route path="/share" element={<SharePage/>}/>
             </Routes>
-        </BrowserRouter>
+        </>
+
     );
 }
 
@@ -72,11 +68,6 @@ function AllocatorPage() {
         forbidden: []
     });
 
-    // 2) On mount, build initial days
-    useEffect(() => {
-        buildDays();
-    }, []);
-
     // 3) If year or month changes, rebuild
     useEffect(() => {
         buildDays();
@@ -105,32 +96,33 @@ function AllocatorPage() {
             setPeople([...people, name]);
         }
     }
+
     function removePerson(name) {
         setPeople(people.filter((p) => p !== name));
         const copy = days.slice();
-        for (let d=1; d<copy.length; d++){
+        for (let d = 1; d < copy.length; d++) {
             if (!copy[d]) continue;
             if (copy[d].fixed[0] === name) copy[d].fixed[0] = null;
             if (copy[d].fixed[1] === name) copy[d].fixed[1] = null;
-            copy[d].forbidden = copy[d].forbidden.filter((f)=>f!==name);
+            copy[d].forbidden = copy[d].forbidden.filter((f) => f !== name);
         }
         setDays(copy);
     }
 
     // 5) Allocate
     function allocateDuties() {
-        if (!days || days.length<2) return;
+        if (!days || days.length < 2) return;
         const copy = days.map((obj) => {
             if (!obj) return null;
-            return { ...obj, assigned: new Array(obj.slots).fill(null) };
+            return {...obj, assigned: new Array(obj.slots).fill(null)};
         });
         const usageCount = {};
         people.forEach((p) => {
             usageCount[p] = 0;
         });
-        for (let d=1; d<copy.length; d++){
-            const prevDay = d>1 ? copy[d-1] : null;
-            for (let slot=0; slot<copy[d].slots; slot++){
+        for (let d = 1; d < copy.length; d++) {
+            const prevDay = d > 1 ? copy[d - 1] : null;
+            for (let slot = 0; slot < copy[d].slots; slot++) {
                 const fixedP = copy[d].fixed[slot];
                 if (fixedP) {
                     if (!isFeasible(fixedP, copy[d], slot, prevDay)) continue;
@@ -138,9 +130,9 @@ function AllocatorPage() {
                     usageCount[fixedP]++;
                 } else {
                     const feasible = people.filter((p) => isFeasible(p, copy[d], slot, prevDay));
-                    if (feasible.length===0) continue;
-                    let minU = Math.min(...feasible.map((pp)=>usageCount[pp]));
-                    let cands = feasible.filter((pp)=>usageCount[pp]===minU);
+                    if (feasible.length === 0) continue;
+                    let minU = Math.min(...feasible.map((pp) => usageCount[pp]));
+                    let cands = feasible.filter((pp) => usageCount[pp] === minU);
                     let chosen = cands[Math.floor(Math.random() * cands.length)];
                     copy[d].assigned[slot] = chosen;
                     usageCount[chosen]++;
@@ -149,6 +141,7 @@ function AllocatorPage() {
         }
         setDays(copy);
     }
+
     function isFeasible(person, dayObj, slotIndex, prevDay) {
         if (dayObj.forbidden.includes(person)) return false;
         if (dayObj.assigned.includes(person)) return false;
@@ -167,9 +160,11 @@ function AllocatorPage() {
         });
         setModalOpen(true);
     }
+
     function closeDayModal() {
         setModalOpen(false);
     }
+
     function saveDayModal() {
         const copy = days.slice();
         const d = modalData.dayNum;
@@ -185,14 +180,14 @@ function AllocatorPage() {
     }
 
     // 7) Stats
-    const { usageCount, singleCount } = computeDutyStats(people, days);
+    const {usageCount, singleCount} = computeDutyStats(people, days);
 
     // 8) SHARE => copy to clipboard
     function handleShare() {
-        const obj = { people, days, year, month };
+        const obj = {people, days, year, month};
         const json = JSON.stringify(obj);
         const encoded = encodeURIComponent(json);
-        const shareUrl = `${window.location.origin}/share?config=${encoded}`;
+        const shareUrl = `${window.location.href}/share?config=${encoded}`;
         navigator.clipboard
             .writeText(shareUrl)
             .then(() => alert(`Copied share URL:\n${shareUrl}`))
@@ -202,14 +197,15 @@ function AllocatorPage() {
     // **Define them HERE** so ESLint sees them
     function renderYearOptions() {
         const opts = [];
-        for (let y=2020; y<=2030; y++){
+        for (let y = 2020; y <= 2030; y++) {
             opts.push(<option key={y} value={y}>{y}</option>);
         }
         return opts;
     }
+
     function renderMonthOptions() {
-        return monthNames.map((mn, idx)=>(
-            <option key={mn} value={idx+1}>{mn}</option>
+        return monthNames.map((mn, idx) => (
+            <option key={mn} value={idx + 1}>{mn}</option>
         ));
     }
 
@@ -217,12 +213,12 @@ function AllocatorPage() {
         <div className="app-container">
             <h1 className="title">Duty Allocator</h1>
 
-            <div style={{ margin: "10px 0" }}>
+            <div style={{margin: "10px 0"}}>
                 <button onClick={handleShare}>Share</button>
             </div>
 
             {/* Month / Year */}
-            <div style={{ margin: "20px 0" }}>
+            <div style={{margin: "20px 0"}}>
                 <label>
                     Year:{" "}
                     <select
@@ -232,7 +228,7 @@ function AllocatorPage() {
                         {renderYearOptions()}
                     </select>
                 </label>
-                <label style={{ marginLeft: "10px" }}>
+                <label style={{marginLeft: "10px"}}>
                     Month:{" "}
                     <select
                         value={month}
@@ -241,16 +237,16 @@ function AllocatorPage() {
                         {renderMonthOptions()}
                     </select>
                 </label>
-                <div style={{ marginTop: "8px" }}>
+                <div style={{marginTop: "8px"}}>
                     {monthNames[month - 1]} {year} has {totalDays} days
                 </div>
             </div>
 
             {/* People */}
-            <PeopleManager people={people} onAdd={addPerson} onRemove={removePerson} />
+            <PeopleManager people={people} onAdd={addPerson} onRemove={removePerson}/>
 
             {/* Calendar */}
-            {days && days.length>1 && (
+            {days && days.length > 1 && (
                 <>
                     <h2 className="subtitle">
                         Calendar for {monthNames[month - 1]} {year}
@@ -265,15 +261,15 @@ function AllocatorPage() {
             )}
 
             {/* Allocate */}
-            <div style={{ marginTop: "20px" }}>
+            <div style={{marginTop: "20px"}}>
                 <button onClick={allocateDuties}>Allocate Duties</button>
             </div>
 
             {/* Duty Summary */}
-            <h2 className="subtitle" style={{ marginTop: "30px" }}>
+            <h2 className="subtitle" style={{marginTop: "30px"}}>
                 Duty Summary
             </h2>
-            <DutySummaryTable people={people} usageCount={usageCount} singleCount={singleCount} />
+            <DutySummaryTable people={people} usageCount={usageCount} singleCount={singleCount}/>
 
             {modalOpen && (
                 <DayModal
@@ -319,7 +315,7 @@ function SharePage() {
         }
     }, [loc.search]);
 
-    const { usageCount, singleCount } = computeDutyStats(people, days);
+    const {usageCount, singleCount} = computeDutyStats(people, days);
 
     if (!loaded) {
         return (
@@ -337,18 +333,18 @@ function SharePage() {
                 {monthNames[month - 1]} {year} – {totalDays} days
             </p>
 
-            <CalendarTableReadOnly year={year} month={month} days={days} />
+            <CalendarTableReadOnly year={year} month={month} days={days}/>
 
-            <h2 className="subtitle" style={{ marginTop: "30px" }}>
+            <h2 className="subtitle" style={{marginTop: "30px"}}>
                 Duty Summary
             </h2>
-            <DutySummaryTable people={people} usageCount={usageCount} singleCount={singleCount} />
+            <DutySummaryTable people={people} usageCount={usageCount} singleCount={singleCount}/>
         </div>
     );
 }
 
 /** People Manager */
-function PeopleManager({ people, onAdd, onRemove }) {
+function PeopleManager({people, onAdd, onRemove}) {
     const [inputVal, setInputVal] = useState("");
 
     function handleAdd() {
@@ -365,7 +361,7 @@ function PeopleManager({ people, onAdd, onRemove }) {
                     value={inputVal}
                     onChange={(e) => setInputVal(e.target.value)}
                 />
-                <button onClick={handleAdd} style={{ marginLeft: "6px" }}>Add</button>
+                <button onClick={handleAdd} style={{marginLeft: "6px"}}>Add</button>
             </div>
             <ul className="people-list">
                 {people.map((p) => (
@@ -380,29 +376,29 @@ function PeopleManager({ people, onAdd, onRemove }) {
 }
 
 /** Interactive Calendar for AllocatorPage */
-function CalendarTable({ year, month, days, openDayModal }) {
+function CalendarTable({year, month, days, openDayModal}) {
     const dCount = getDaysInMonth(year, month);
     const firstWkday = getFirstWeekday(year, month);
 
     const rows = [];
     let row = [];
     let dayCounter = 0;
-    for (let i=0; i<firstWkday; i++){
+    for (let i = 0; i < firstWkday; i++) {
         row.push(null);
         dayCounter++;
     }
     let d = 1;
-    while (d <= dCount){
-        if (dayCounter>6){
+    while (d <= dCount) {
+        if (dayCounter > 6) {
             rows.push(row);
             row = [];
-            dayCounter=0;
+            dayCounter = 0;
         }
         row.push(d);
         d++;
         dayCounter++;
     }
-    while(dayCounter<=6){
+    while (dayCounter <= 6) {
         row.push(null);
         dayCounter++;
     }
@@ -422,12 +418,12 @@ function CalendarTable({ year, month, days, openDayModal }) {
             </tr>
             </thead>
             <tbody>
-            {rows.map((r,i)=>(
+            {rows.map((r, i) => (
                 <tr key={i}>
-                    {r.map((dayNum, idx)=>(
+                    {r.map((dayNum, idx) => (
                         <td key={idx}>
                             {dayNum ?
-                                <DayCell dayNum={dayNum} dayObj={days[dayNum]} openDayModal={openDayModal} />
+                                <DayCell dayNum={dayNum} dayObj={days[dayNum]} openDayModal={openDayModal}/>
                                 : null
                             }
                         </td>
@@ -438,20 +434,21 @@ function CalendarTable({ year, month, days, openDayModal }) {
         </table>
     );
 }
-function DayCell({ dayNum, dayObj, openDayModal }) {
+
+function DayCell({dayNum, dayObj, openDayModal}) {
     const assigned = dayObj?.assigned || [];
     return (
         <div>
             <div
                 className="day-label"
-                onClick={()=>openDayModal(dayNum)}
+                onClick={() => openDayModal(dayNum)}
             >
                 Day {dayNum}
             </div>
             <div className="assigned-list">
                 {" "}
-                {assigned.length>0
-                    ? assigned.map((a,i)=><div key={i}>{a||"-"}</div>)
+                {assigned.length > 0
+                    ? assigned.map((a, i) => <div key={i}>{a || "-"}</div>)
                     : " -"
                 }
             </div>
@@ -460,29 +457,29 @@ function DayCell({ dayNum, dayObj, openDayModal }) {
 }
 
 /** Read-only Calendar for /share page */
-function CalendarTableReadOnly({ year, month, days }) {
+function CalendarTableReadOnly({year, month, days}) {
     const dCount = getDaysInMonth(year, month);
     const firstWkday = getFirstWeekday(year, month);
 
     const rows = [];
     let row = [];
     let dayCounter = 0;
-    for (let i=0; i<firstWkday; i++){
+    for (let i = 0; i < firstWkday; i++) {
         row.push(null);
         dayCounter++;
     }
     let d = 1;
-    while (d <= dCount){
-        if (dayCounter>6){
+    while (d <= dCount) {
+        if (dayCounter > 6) {
             rows.push(row);
             row = [];
-            dayCounter=0;
+            dayCounter = 0;
         }
         row.push(d);
         d++;
         dayCounter++;
     }
-    while(dayCounter<=6){
+    while (dayCounter <= 6) {
         row.push(null);
         dayCounter++;
     }
@@ -502,12 +499,12 @@ function CalendarTableReadOnly({ year, month, days }) {
             </tr>
             </thead>
             <tbody>
-            {rows.map((r,i)=>(
+            {rows.map((r, i) => (
                 <tr key={i}>
-                    {r.map((dayNum, idx)=>(
+                    {r.map((dayNum, idx) => (
                         <td key={idx}>
                             {dayNum
-                                ? <ReadOnlyDayCell dayNum={dayNum} dayObj={days[dayNum]} />
+                                ? <ReadOnlyDayCell dayNum={dayNum} dayObj={days[dayNum]}/>
                                 : null
                             }
                         </td>
@@ -518,7 +515,8 @@ function CalendarTableReadOnly({ year, month, days }) {
         </table>
     );
 }
-function ReadOnlyDayCell({ dayNum, dayObj }) {
+
+function ReadOnlyDayCell({dayNum, dayObj}) {
     const assigned = dayObj?.assigned || [];
     return (
         <div>
@@ -527,8 +525,8 @@ function ReadOnlyDayCell({ dayNum, dayObj }) {
             </div>
             <div className="assigned-list">
                 {" "}
-                {assigned.length>0
-                    ? assigned.map((a,i)=><div key={i}>{a||"-"}</div>)
+                {assigned.length > 0
+                    ? assigned.map((a, i) => <div key={i}>{a || "-"}</div>)
                     : " -"
                 }
             </div>
@@ -537,30 +535,33 @@ function ReadOnlyDayCell({ dayNum, dayObj }) {
 }
 
 /** The Day Modal for editing a single day. */
-function DayModal({ modalData, setModalData, people, closeDayModal, saveDayModal }) {
-    const { dayNum, slots, fixed, forbidden } = modalData;
+function DayModal({modalData, setModalData, people, closeDayModal, saveDayModal}) {
+    const {dayNum, slots, fixed, forbidden} = modalData;
 
-    function handleSlots(e){
+    function handleSlots(e) {
         const val = parseInt(e.target.value);
-        const copy = { ...modalData, slots: val };
-        if (val===1) copy.fixed[1] = null;
+        const copy = {...modalData, slots: val};
+        if (val === 1) copy.fixed[1] = null;
         setModalData(copy);
     }
+
     function handleFixed(slotIndex, person) {
-        const copy = { ...modalData };
+        const copy = {...modalData};
         copy.fixed[slotIndex] = person === "" ? null : person;
         setModalData(copy);
     }
-    function addForbidden(name){
+
+    function addForbidden(name) {
         if (!forbidden.includes(name)) {
-            const copy = { ...modalData };
+            const copy = {...modalData};
             copy.forbidden = [...forbidden, name];
             setModalData(copy);
         }
     }
-    function removeForbidden(name){
-        const copy = { ...modalData };
-        copy.forbidden = copy.forbidden.filter((f)=>f!==name);
+
+    function removeForbidden(name) {
+        const copy = {...modalData};
+        copy.forbidden = copy.forbidden.filter((f) => f !== name);
         setModalData(copy);
     }
 
@@ -569,13 +570,13 @@ function DayModal({ modalData, setModalData, people, closeDayModal, saveDayModal
             <div className="modal-content">
                 <h2>Edit Day {dayNum}</h2>
 
-                <div style={{ margin:"10px 0" }}>
-                    <label style={{ marginRight:"10px" }}>
+                <div style={{margin: "10px 0"}}>
+                    <label style={{marginRight: "10px"}}>
                         <input
                             type="radio"
                             name="slotCount"
                             value={1}
-                            checked={slots===1}
+                            checked={slots === 1}
                             onChange={handleSlots}
                         />
                         1 Slot
@@ -585,7 +586,7 @@ function DayModal({ modalData, setModalData, people, closeDayModal, saveDayModal
                             type="radio"
                             name="slotCount"
                             value={2}
-                            checked={slots===2}
+                            checked={slots === 2}
                             onChange={handleSlots}
                         />
                         2 Slots
@@ -593,27 +594,27 @@ function DayModal({ modalData, setModalData, people, closeDayModal, saveDayModal
                 </div>
 
                 {/* Fixed persons */}
-                <div style={{ margin:"6px 0" }}>
+                <div style={{margin: "6px 0"}}>
                     Slot 1:{" "}
                     <select
-                        value={fixed[0]||""}
-                        onChange={(e)=>handleFixed(0, e.target.value)}
+                        value={fixed[0] || ""}
+                        onChange={(e) => handleFixed(0, e.target.value)}
                     >
                         <option value="">(None)</option>
-                        {people.map((p)=>(
+                        {people.map((p) => (
                             <option key={p} value={p}>{p}</option>
                         ))}
                     </select>
                 </div>
-                {slots===2 && (
-                    <div style={{ margin:"6px 0" }}>
+                {slots === 2 && (
+                    <div style={{margin: "6px 0"}}>
                         Slot 2:{" "}
                         <select
-                            value={fixed[1]||""}
-                            onChange={(e)=>handleFixed(1, e.target.value)}
+                            value={fixed[1] || ""}
+                            onChange={(e) => handleFixed(1, e.target.value)}
                         >
                             <option value="">(None)</option>
-                            {people.map((p)=>(
+                            {people.map((p) => (
                                 <option key={p} value={p}>{p}</option>
                             ))}
                         </select>
@@ -621,46 +622,52 @@ function DayModal({ modalData, setModalData, people, closeDayModal, saveDayModal
                 )}
 
                 {/* Forbidden */}
-                <div style={{ marginTop:"10px" }}>
-                    <div style={{ marginBottom:"6px" }}>Forbidden People:</div>
+                <div style={{marginTop: "10px"}}>
+                    <div style={{marginBottom: "6px"}}>Forbidden People:</div>
                     <div>
-                        {forbidden.map((f)=>(
+                        {forbidden.map((f) => (
                             <span key={f} style={{
-                                display:"inline-block",
-                                background:"#eee",
-                                margin:"3px",
-                                padding:"2px 6px",
-                                borderRadius:"4px"
+                                display: "inline-block",
+                                background: "#eee",
+                                margin: "3px",
+                                padding: "2px 6px",
+                                borderRadius: "4px"
                             }}>
                 {f}
                                 <button
-                                    style={{ border:"none", background:"none", marginLeft:"4px", cursor:"pointer", color:"#c33" }}
-                                    onClick={()=>removeForbidden(f)}
+                                    style={{
+                                        border: "none",
+                                        background: "none",
+                                        marginLeft: "4px",
+                                        cursor: "pointer",
+                                        color: "#c33"
+                                    }}
+                                    onClick={() => removeForbidden(f)}
                                 >
                   x
                 </button>
               </span>
                         ))}
                     </div>
-                    <div style={{ marginTop:"8px" }}>
+                    <div style={{marginTop: "8px"}}>
                         <select
-                            onChange={(e)=>{
+                            onChange={(e) => {
                                 if (e.target.value) {
                                     addForbidden(e.target.value);
-                                    e.target.value="";
+                                    e.target.value = "";
                                 }
                             }}
                         >
                             <option value="">(Add person)</option>
-                            {people.map((p)=>
+                            {people.map((p) =>
                                 <option key={p} value={p}>{p}</option>
                             )}
                         </select>
                     </div>
                 </div>
 
-                <div style={{ marginTop:"20px" }}>
-                    <button onClick={saveDayModal} style={{ marginRight:"8px" }}>
+                <div style={{marginTop: "20px"}}>
+                    <button onClick={saveDayModal} style={{marginRight: "8px"}}>
                         Save
                     </button>
                     <button onClick={closeDayModal}>Cancel</button>
@@ -671,7 +678,7 @@ function DayModal({ modalData, setModalData, people, closeDayModal, saveDayModal
 }
 
 /** DutySummaryTable => total + single duties */
-function DutySummaryTable({ people, usageCount, singleCount }) {
+function DutySummaryTable({people, usageCount, singleCount}) {
     return (
         <table className="duty-summary">
             <thead>
@@ -682,11 +689,11 @@ function DutySummaryTable({ people, usageCount, singleCount }) {
             </tr>
             </thead>
             <tbody>
-            {people.map((p)=>(
+            {people.map((p) => (
                 <tr key={p}>
                     <td>{p}</td>
-                    <td>{usageCount[p]||0}</td>
-                    <td>{singleCount[p]||0}</td>
+                    <td>{usageCount[p] || 0}</td>
+                    <td>{singleCount[p] || 0}</td>
                 </tr>
             ))}
             </tbody>
@@ -698,29 +705,29 @@ function DutySummaryTable({ people, usageCount, singleCount }) {
 function computeDutyStats(people, days) {
     const usageCount = {};
     const singleCount = {};
-    people.forEach((p)=>{
+    people.forEach((p) => {
         usageCount[p] = 0;
         singleCount[p] = 0;
     });
-    if (!days || days.length===0) return { usageCount, singleCount };
+    if (!days || days.length === 0) return {usageCount, singleCount};
 
-    for (let d=1; d<days.length; d++){
+    for (let d = 1; d < days.length; d++) {
         const day = days[d];
         if (!day) continue;
-        const { slots, assigned } = day;
+        const {slots, assigned} = day;
         if (assigned) {
-            for (let i=0; i<assigned.length; i++){
+            for (let i = 0; i < assigned.length; i++) {
                 const person = assigned[i];
                 if (person) {
                     usageCount[person]++;
-                    if (slots===1) {
+                    if (slots === 1) {
                         singleCount[person]++;
                     }
                 }
             }
         }
     }
-    return { usageCount, singleCount };
+    return {usageCount, singleCount};
 }
 
 /** GlobalStyles => Roboto, responsive table, etc. */
