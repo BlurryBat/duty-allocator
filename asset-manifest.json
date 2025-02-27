@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/duty-allocator/static/js/main.88cd66b8.js",
+    "main.js": "/duty-allocator/static/js/main.595a26dc.js",
     "index.html": "/duty-allocator/index.html",
-    "main.88cd66b8.js.map": "/duty-allocator/static/js/main.88cd66b8.js.map"
+    "main.595a26dc.js.map": "/duty-allocator/static/js/main.595a26dc.js.map"
   },
   "entrypoints": [
-    "static/js/main.88cd66b8.js"
+    "static/js/main.595a26dc.js"
   ]
 }
