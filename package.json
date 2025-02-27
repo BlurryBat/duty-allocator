@@ -1,6 +1,7 @@
 {
   "name": "duty-allocator",
   "version": "0.1.0",
+  "homepage": "https://blurrybat.github.io/duty-allocator",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
@@ -36,5 +37,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
