@@ -187,7 +187,7 @@ function AllocatorPage() {
         const obj = {people, days, year, month};
         const json = JSON.stringify(obj);
         const encoded = encodeURIComponent(json);
-        const shareUrl = `${window.location.href}/share?config=${encoded}`;
+        const shareUrl = `${window.location.href}/#/share?config=${encoded}`;
         navigator.clipboard
             .writeText(shareUrl)
             .then(() => alert(`Copied share URL:\n${shareUrl}`))
